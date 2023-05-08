@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { StyledButton, StyledForm, StyledInput } from './ContactForm.styled';
-import { useSelector, useDispatch } from 'react-redux';
-import { getContacts, addContact } from '../../redux/contactsFetch';
+import { useContacts } from '../../hooks/useHooks';
+import { Form, Input, Btn } from './ContactForm.styled';
+import { infoToast, successToast } from '../Toasts';
 
 export const ContactForm = () => {
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const contacts = useSelector(getContacts);
-  const dispatch = useDispatch();
+  const [number, setNumber] = useState('');
+  const { contacts, inAddContact } = useContacts();
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -15,8 +14,8 @@ export const ContactForm = () => {
       case 'name':
         setName(value);
         break;
-      case 'phone':
-        setPhone(value);
+      case 'number':
+        setNumber(value);
         break;
       default:
         break;
@@ -25,46 +24,44 @@ export const ContactForm = () => {
 
   const handleSubmit = e => {
     e.preventDefault();
-    const contact = {
-      name,
-      phone,
-    };
+
     const enterContacts = contacts.some(
-      i =>
-        i.name.toLowerCase() === contact.name.toLowerCase() ||
-        i.phone === contact.phone
+      i => i.name.toLowerCase() === name.toLowerCase() || i.number === number
     );
     enterContacts
-      ? alert(`${name} is already in contacts`)
-      : dispatch(addContact(contact));
+      ? infoToast(`${name} is already in contacts`)
+      : inAddContact({ name, number });
+    !enterContacts && successToast('The contact is in the list!');
 
     setName('');
-    setPhone('');
+    setNumber('');
   };
 
   return (
-    <StyledForm onSubmit={handleSubmit}>
-      <StyledInput
+    <Form onSubmit={handleSubmit}>
+      <Input
         type="text"
         name="name"
-        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-        title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
         value={name}
         onChange={handleChange}
         placeholder="Name"
+        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+        title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
         required
       />
-      <StyledInput
+
+      <Input
         type="tel"
-        name="phone"
+        name="number"
+        value={number}
+        onChange={handleChange}
+        placeholder="number"
         pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
         title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-        value={phone}
-        onChange={handleChange}
-        placeholder="Phone number"
         required
       />
-      <StyledButton type="submit">Add contact</StyledButton>
-    </StyledForm>
+
+      <Btn type="submit">Add contact</Btn>
+    </Form>
   );
 };
